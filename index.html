@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartHomeMind — Évaluation de sécurité domestique</title>
+  <meta name="description" content="Évaluez la sécurité de votre maison et obtenez vos actions prioritaires." />
+
+  <!-- PWA: installability -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1f2a24" />
+
+  <!-- PWA: iOS-specific install support (Safari doesn't fully read manifest.json) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SmartHomeMind" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main id="app" role="main">
+    <!-- All screens are rendered here by js/main.js -->
+    <noscript>SmartHomeMind nécessite JavaScript pour fonctionner.</noscript>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
