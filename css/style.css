@@ -196,6 +196,29 @@ button:focus-visible,
   align-self: center;
 }
 
+/* ---------- Language switcher ---------- */
+.language-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.lang-option {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+}
+.lang-option.is-selected {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-bg);
+}
 /* ---------- Assessment screen ---------- */
 .progress-bar {
   height: 6px;
