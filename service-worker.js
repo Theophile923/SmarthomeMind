@@ -1,5 +1,4 @@
-/**
- * service-worker.js
+/const CACHE_VERSION = "v3"; // bumped for V1.1 language update (fr/en/sw/zh)
  * ----------------------
  * Makes SmartHomeMind work with NO internet connection after the first
  * visit — important in contexts with unreliable connectivity.
