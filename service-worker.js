@@ -32,6 +32,7 @@ const APP_SHELL_FILES = [
   "./js/data/categories.js",
   "./js/data/questions.js",
   "./js/data/recommendations.js",
+    "./js/core/i18n.js",
   "./js/core/DynamicRiskEngine.js",
   "./js/core/RecommendationEngine.js",
   "./js/storage/StorageAdapter.js",
