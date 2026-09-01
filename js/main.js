@@ -25,8 +25,6 @@ import { renderResults } from "./ui/ResultsUI.js";
 import { renderHistory } from "./ui/HistoryUI.js";
 import { t, getLanguage, setLanguage, SUPPORTED_LANGUAGES, getLanguageDisplayName } from "./core/i18n.js";
 
-// Swapping to a future CloudStorageAdapter/Pi-backed storage means
-// changing only this one line — nothing else in the app needs to know.
 const storage = new LocalStorageAdapter();
 
 const root = document.getElementById("app");
@@ -107,4 +105,36 @@ function goToHistory() {
   renderHistory(root, {
     history,
     onStartNew: goToAssessment,
-    onSelectAssessment:
+    onSelectAssessment: (assessmentId) => {
+      const saved = storage.getAssessmentById(assessmentId);
+      if (!saved) return;
+      const recommendations = rankRecommendations(saved.answers, 5);
+      renderResults(root, {
+        assessment: saved,
+        recommendations,
+        onRetake: goToAssessment,
+        onSaveAndViewHistory: goToHistory,
+      });
+    },
+    onExportData: () => {
+      const data = storage.exportAll();
+      downloadJson(data, `smarthomemind-export-${Date.now()}.json`);
+    },
+  });
+}
+
+function downloadJson(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+if
