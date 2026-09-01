@@ -1,4 +1,5 @@
-/const CACHE_VERSION = "v3"; // bumped for V1.1 language update (fr/en/sw/zh)
+/**
+ * service-worker.js
  * ----------------------
  * Makes SmartHomeMind work with NO internet connection after the first
  * visit — important in contexts with unreliable connectivity.
@@ -20,7 +21,7 @@
  * old version until they manually clear their browser data.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v4"; // bumped after fixing the corrupted header
 const CACHE_NAME = `smarthomemind-${CACHE_VERSION}`;
 
 const APP_SHELL_FILES = [
@@ -32,7 +33,7 @@ const APP_SHELL_FILES = [
   "./js/data/categories.js",
   "./js/data/questions.js",
   "./js/data/recommendations.js",
-    "./js/core/i18n.js",
+  "./js/core/i18n.js",
   "./js/core/DynamicRiskEngine.js",
   "./js/core/RecommendationEngine.js",
   "./js/storage/StorageAdapter.js",
