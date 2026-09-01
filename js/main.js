@@ -75,7 +75,6 @@ function goHome() {
     historyBtn.addEventListener("click", goToHistory);
   }
 }
-
 function goToAssessment() {
   renderAssessment(root, {
     onComplete: (answers) => {
@@ -137,4 +136,14 @@ function downloadJson(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-if
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .catch((err) => console.warn("[PWA] Service worker registration failed:", err));
+  });
+}
+
+document.documentElement.lang = getLanguage();
+
+goHome();
