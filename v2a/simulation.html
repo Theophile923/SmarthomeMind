@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartHomeMind V2-A — Simulateur de raisonnement</title>
+<meta name="description" content="Démo interactive du moteur de raisonnement multi-capteurs de SmartHomeMind — aucun matériel requis." />
+<style>
+:root {
+  --color-bg: #faf7f1;
+  --color-surface: #ffffff;
+  --color-ink: #1f2a24;
+  --color-ink-soft: #5b655f;
+  --color-safe: #2f6f4e;
+  --color-moderate: #c99a3b;
+  --color-risk: #b8452f;
+  --color-critical: #7a1f1f;
+  --color-line: #e4ded2;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+  --radius: 14px;
+  --max-width: 640px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; display: flex; justify-content: center; }
+#app { width: 100%; max-width: var(--max-width); min-height: 100vh; padding: 24px 20px 48px; }
+.header { text-align: center; margin-bottom: 20px; }
+.app-title { font-size: 24px; font-weight: 800; margin: 0 0 6px; }
+.app-tagline { font-size: 14px; color: var(--color-ink-soft); margin: 0; }
+.disclaimer { background: var(--color-surface); border: 1.5px dashed var(--color-line); border-radius: var(--radius); padding: 12px 16px; font-size: 12px; color: var(--color-ink-soft); margin-bottom: 20px; line-height: 1.5; }
+.scenario-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.scenario-btn { text-align: left; font-family: var(--font-body); font-size: 14px; font-weight: 600; padding: 12px 16px; border-radius: var(--radius); border: 1.5px solid var(--color-line); background: var(--color-surface); cursor: pointer; color: var(--color-ink); }
+.scenario-btn:hover { border-color: var(--color-ink); }
+.scenario-btn.is-selected { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-bg); }
+.scenario-btn .num { font-family: var(--font-mono); font-size: 11px; opacity: 0.7; margin-right: 8px; }
+.scenario-btn.deferred { opacity: 0.55; cursor: not-allowed; }
+.run-panel { background: var(--color-surface); border: 1.5px solid var(--color-line); border-radius: var(--radius); padding: 18px; }
+.run-panel h2 { font-size: 16px; margin: 0 0 4px; }
+.run-panel .desc { font-size: 13px; color: var(--color-ink-soft); margin: 0 0 14px; }
+.deferred-note { background: #fff6e6; border: 1px solid var(--color-moderate); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--color-ink); }
+.steps-list { font-family: var(--font-mono); font-size: 12px; background: var(--color-bg); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; white-space: pre-wrap; line-height: 1.6; }
+.result-block { border-top: 1px solid var(--color-line); padding-top: 14px; margin-top: 14px; }
+.result-location { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-ink-soft); margin-bottom: 8px; }
+.category-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; border: 1.5px solid var(--color-line); }
+.category-row.level-NORMAL { border-color: var(--color-line); }
+.category-row.level-INFO { border-color: #cfcabb; background: #fbfaf6; }
+.category-row.level-WARNING { border-color: var(--color-moderate); background: #fff8ea; }
+.category-row.level-CRITICAL { border-color: var(--color-critical); background: #fdeeee; }
+.category-name { font-weight: 700; font-size: 13px; min-width: 150px; }
+.metric { font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-soft); }
+.level-pill { font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; color: #fff; }
+.level-pill.level-NORMAL { background: var(--color-ink-soft); }
+.level-pill.level-INFO { background: #8a8367; }
+.level-pill.level-WARNING { background: var(--color-moderate); }
+.level-pill.level-CRITICAL { background: var(--color-critical); }
+.downgrade-note { font-size: 11px; color: var(--color-moderate); font-style: italic; }
+.channels { font-size: 11px; color: var(--color-ink-soft); width: 100%; margin-top: 4px; }
+.expectation { font-size: 12px; color: var(--color-ink-soft); margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--color-line); }
+.guardian-health { font-size: 12px; margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: var(--color-bg); }
+.empty-state { text-align: center; color: var(--color-ink-soft); font-size: 13px; padding: 20px 0; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+/* ============================================================
+   ENGINE — ported from the Node.js CLI version (core/*.js and
+   simulator/scenarios.js in this same repo's v2a/ folder). Logic is
+   kept identical; only the module system changes (no require/exports,
+   since this runs directly in the browser).
+   ============================================================ */
+
+// ---------- data/hazardConfig.js ----------
+const METRIC_CONFIG = {
+  smoke: { weight: 0.5, halfLifeSeconds: 60 },
+  co: { weight: 0.5, halfLifeSeconds: 180 },
+  water_leak: { weight: 0.4, halfLifeSeconds: 600 },
+  temperature_velocity: { weight: 0.35, halfLifeSeconds: 120 },
+  temperature_absolute: { weight: 0.3, halfLifeSeconds: 300 },
+  motion: { weight: 0.3, halfLifeSeconds: 90 },
+};
+const HAZARD_CATEGORIES = {
+  FIRE: ["smoke", "temperature_velocity"],
+  GAS: ["co"],
+  WATER: ["water_leak"],
+  INTRUSION: ["motion"],
+  ELECTRICAL_OVERHEATING: ["temperature_absolute"],
+};
+const ESCALATION_THRESHOLDS = [
+  { min: 0.8, level: "CRITICAL" },
+  { min: 0.5, level: "WARNING" },
+  { min: 0.2, level: "INFO" },
+  { min: 0, level: "NORMAL" },
+];
+const SINGLE_SIGNAL_CONFIDENCE_CAP = 0.6;
+
+// ---------- core/decay.js ----------
+function computeDecay(ageSeconds, halfLifeSeconds) {
+  if (ageSeconds < 0) return 1.0;
+  return Math.pow(0.5, ageSeconds / halfLifeSeconds);
+}
+
+// ---------- core/homeState.js ----------
+class HomeState {
+  constructor(initialState) { this.current = initialState; }
+  get() { return this.current; }
+}
+
+// ---------- core/guardianHealth.js ----------
+const DEFAULT_STALE_AFTER_SECONDS = 300;
+class GuardianHealth {
+  constructor(staleAfterSeconds = DEFAULT_STALE_AFTER_SECONDS) {
+    this.staleAfterSeconds = staleAfterSeconds;
+    this.lastSeenBySensor = new Map();
+  }
+  recordHeartbeat(sensorId, timestampMs) {
+    const prev = this.lastSeenBySensor.get(sensorId);
+    if (!prev || timestampMs > prev) this.lastSeenBySensor.set(sensorId, timestampMs);
+  }
+  getSensorStatus(sensorId, nowMs) {
+    const lastSeen = this.lastSeenBySensor.get(sensorId);
+    if (lastSeen === undefined) return "UNKNOWN";
+    const ageSeconds = (nowMs - lastSeen) / 1000;
+    return ageSeconds > this.staleAfterSeconds ? "DEGRADED" : "OK";
+  }
+  getSensorConfidenceFactor(sensorId, nowMs) {
+    const status = this.getSensorStatus(sensorId, nowMs);
+    if (status === "OK") return 1.0;
+    if (status === "DEGRADED") return 0.4;
+    return 0.2;
+  }
+}
+
+// ---------- core/riskEngine.js ----------
+const VELOCITY_WINDOW_SECONDS = 180;
+const VELOCITY_NOISE_FLOOR = 0.5;
+const VELOCITY_SATURATION = 5.0;
+const TEMP_ABS_NORMAL_C = 40;
+const TEMP_ABS_SATURATION_C = 80;
+const MOTION_HOME_STATE_INTENSITY = { HOME: 0.05, NIGHT: 0.5, AWAY: 0.9, VACATION: 1.0 };
+
+function round3(n) { return Math.round(n * 1000) / 1000; }
+
+class RiskEngine {
+  constructor(homeState, guardianHealth) {
+    this.homeState = homeState;
+    this.guardianHealth = guardianHealth;
+    this.history = new Map();
+  }
+  ingestReading(reading) {
+    const { sensorId, timestampMs } = reading;
+    if (!this.history.has(sensorId)) this.history.set(sensorId, []);
+    this.history.get(sensorId).push(reading);
+    this.guardianHealth.recordHeartbeat(sensorId, timestampMs);
+  }
+  computeTemperatureVelocity(sensorId, nowMs) {
+    const readings = (this.history.get(sensorId) || []).filter(
+      (r) => r.metricType === "temperature" && nowMs - r.timestampMs <= VELOCITY_WINDOW_SECONDS * 1000
+    );
+    if (readings.length < 2) return 0;
+    const first = readings[0], last = readings[readings.length - 1];
+    const minutesElapsed = (last.timestampMs - first.timestampMs) / 60000;
+    if (minutesElapsed <= 0) return 0;
+    return Math.max(0, (last.value - first.value) / minutesElapsed);
+  }
+  normalizeIntensity(reading) {
+    switch (reading.metricType) {
+      case "smoke": case "water_leak": return reading.value ? 1 : 0;
+      case "co": return Math.min(1, Math.max(0, reading.value));
+      case "motion": {
+        const state = this.homeState.get();
+        return reading.value ? (MOTION_HOME_STATE_INTENSITY[state] ?? 0.3) : 0;
+      }
+      case "temperature_velocity_derived": {
+        const v = reading.value;
+        if (v < VELOCITY_NOISE_FLOOR) return 0;
+        return Math.min(1, v / VELOCITY_SATURATION);
+      }
+      case "temperature_absolute_derived": {
+        const t = reading.value;
+        if (t < TEMP_ABS_NORMAL_C) return 0;
+        return Math.min(1, (t - TEMP_ABS_NORMAL_C) / (TEMP_ABS_SATURATION_C - TEMP_ABS_NORMAL_C));
+      }
+      default: return 0;
+    }
+  }
+  evaluateLocation(locationId, nowMs) {
+    const results = {};
+    for (const [category, metricTypes] of Object.entries(HAZARD_CATEGORIES)) {
+      let score = 0;
+      const contributingFactors = [];
+      const corroboratingTypes = new Set();
+      for (const metricType of metricTypes) {
+        const config = METRIC_CONFIG[metricType];
+        if (!config) continue;
+        const effectiveReadings = this._getEffectiveReadings(metricType, locationId, nowMs);
+        for (const eff of effectiveReadings) {
+          const ageSeconds = (nowMs - eff.timestampMs) / 1000;
+          const decay = computeDecay(ageSeconds, config.halfLifeSeconds);
+          const intensity = this.normalizeIntensity(eff);
+          if (intensity <= 0) continue;
+          const healthFactor = this.guardianHealth.getSensorConfidenceFactor(eff.sensorId, nowMs);
+          const contribution = intensity * config.weight * decay * healthFactor;
+          if (contribution > 0) {
+            score += contribution;
+            corroboratingTypes.add(metricType);
+            contributingFactors.push({ sensorId: eff.sensorId, metricType, decay, healthFactor, contribution: round3(contribution) });
+          }
+        }
+      }
+      score = Math.min(1, round3(score));
+      let confidence = 0;
+      if (contributingFactors.length > 0) {
+        const avgFreshnessHealth = contributingFactors.reduce((sum, f) => sum + f.decay * f.healthFactor, 0) / contributingFactors.length;
+        const corroborationBoost = Math.min(1, corroboratingTypes.size / metricTypes.length);
+        confidence = avgFreshnessHealth * (0.5 + 0.5 * corroborationBoost);
+        if (corroboratingTypes.size <= 1) confidence = Math.min(confidence, SINGLE_SIGNAL_CONFIDENCE_CAP);
+      }
+      confidence = round3(Math.min(1, confidence));
+      results[category] = { score, confidence, contributingFactors };
+    }
+    return results;
+  }
+  _getEffectiveReadings(metricType, locationId, nowMs) {
+    if (metricType === "temperature_velocity") {
+      return this._latestPerSensor("temperature", locationId).map((r) => ({ ...r, metricType: "temperature_velocity_derived", value: this.computeTemperatureVelocity(r.sensorId, nowMs) }));
+    }
+    if (metricType === "temperature_absolute") {
+      return this._latestPerSensor("temperature", locationId).map((r) => ({ ...r, metricType: "temperature_absolute_derived", value: r.value }));
+    }
+    return this._latestPerSensor(metricType, locationId);
+  }
+  _latestPerSensor(metricType, locationId) {
+    const bySensor = new Map();
+    for (const [sensorId, readings] of this.history.entries()) {
+      const matching = readings.filter((r) => r.metricType === metricType && r.locationId === locationId);
+      if (matching.length === 0) continue;
+      bySensor.set(sensorId, matching[matching.length - 1]);
+    }
+    return Array.from(bySensor.values());
+  }
+}
+
+// ---------- core/escalation.js ----------
+const LOW_CONFIDENCE_THRESHOLD = 0.4;
+const LEVEL_ORDER = ["NORMAL", "INFO", "WARNING", "CRITICAL"];
+function levelFromScore(score) { return ESCALATION_THRESHOLDS.find((t) => score >= t.min).level; }
+function downgrade(level) { return LEVEL_ORDER[Math.max(0, LEVEL_ORDER.indexOf(level) - 1)]; }
+function decideEscalation(category, evaluation, language) {
+  const { score, confidence } = evaluation;
+  let level = levelFromScore(score);
+  const wasDowngraded = level !== "NORMAL" && confidence < LOW_CONFIDENCE_THRESHOLD;
+  if (wasDowngraded) level = downgrade(level);
+  return { category, score, confidence, rawLevel: levelFromScore(score), finalLevel: level, downgradedForLowConfidence: wasDowngraded, alertPlan: buildAlertPlan(category, level, language) };
+}
+function buildAlertPlan(category, level, language) {
+  if (level === "NORMAL") return { channels: [], audioFile: null };
+  const audioFile = `/assets/audio/${language}/alert_${category.toLowerCase()}_${level.toLowerCase()}.mp3`;
+  if (level === "INFO") return { channels: ["LOG", "PUSH_DIGEST"], audioFile: null };
+  if (level === "WARNING") return { channels: ["PUSH_NOTIFICATION", "LOCAL_AUDIO_PULSE"], audioFile };
+  return { channels: ["PUSH_NOTIFICATION_HIGH_PRIORITY", "LOCAL_AUDIO_LOOP"], audioFile };
+}
+
+// ---------- simulator/scenarios.js ----------
+const BASE_TIME_MS = Date.parse("2026-01-01T00:00:00Z");
+const s = (seconds) => BASE_TIME_MS + seconds * 1000;
+const SCENARIOS = [
+  { id: 1, name: "Température normale", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "temp_kitchen_01", metricType: "temperature", value: 22, timestampMs: s(0) }, { sensorId: "temp_kitchen_01", metricType: "temperature", value: 22.3, timestampMs: s(60) }],
+    evalAtSeconds: 60, expectation: "Devrait rester NORMAL." },
+  { id: 2, name: "Hausse graduelle de température", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "temp_kitchen_01", metricType: "temperature", value: 22, timestampMs: s(0) }, { sensorId: "temp_kitchen_01", metricType: "temperature", value: 24, timestampMs: s(180) }],
+    evalAtSeconds: 180, expectation: "Hausse lente — devrait rester sous le seuil de bruit." },
+  { id: 3, name: "Hausse rapide de température (sans fumée)", homeState: "HOME", location: "garage",
+    steps: [{ sensorId: "temp_garage_01", metricType: "temperature", value: 25, timestampMs: s(0) }, { sensorId: "temp_garage_01", metricType: "temperature", value: 40, timestampMs: s(120) }],
+    evalAtSeconds: 120, expectation: "Hausse rapide, pas de fumée — signal unique, confiance plafonnée." },
+  { id: 4, name: "Fuite d'eau", homeState: "HOME", location: "bathroom",
+    steps: [{ sensorId: "leak_bathroom_01", metricType: "water_leak", value: 1, timestampMs: s(0) }],
+    evalAtSeconds: 10, expectation: "WATER devrait monter — signal unique, confiance plafonnée." },
+  { id: 5, name: "Fumée seule", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(0) }],
+    evalAtSeconds: 5, expectation: "FIRE monte, mais confiance plafonnée (signal unique)." },
+  { id: 6, name: "Fumée + hausse rapide de température (cas clé)", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "temp_kitchen_01", metricType: "temperature", value: 22, timestampMs: s(0) }, { sensorId: "temp_kitchen_01", metricType: "temperature", value: 35, timestampMs: s(90) }, { sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(90) }],
+    evalAtSeconds: 90, expectation: "FIRE devrait être CRITIQUE avec confiance élevée — deux signaux qui se corroborent." },
+  { id: 7, name: "Mouvement, maison occupée (HOME)", homeState: "HOME", location: "living_room",
+    steps: [{ sensorId: "motion_living_01", metricType: "motion", value: 1, timestampMs: s(0) }],
+    evalAtSeconds: 5, expectation: "INTRUSION devrait rester proche de zéro." },
+  { id: 8, name: "Mouvement, maison vide (AWAY)", homeState: "AWAY", location: "living_room",
+    steps: [{ sensorId: "motion_living_01", metricType: "motion", value: 1, timestampMs: s(0) }],
+    evalAtSeconds: 5, expectation: "INTRUSION devrait monter — même capteur, sens différent selon HOME_STATE." },
+  { id: 9, name: "Faux signal isolé (bref)", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(0) }, { sensorId: "smoke_kitchen_01", metricType: "smoke", value: 0, timestampMs: s(15) }],
+    evalAtSeconds: 400, expectation: "Évalué longtemps après — ne devrait plus lire comme critique." },
+  { id: 10, name: "Signaux contradictoires", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "temp_kitchen_01", metricType: "temperature", value: 22, timestampMs: s(0) }, { sensorId: "temp_kitchen_01", metricType: "temperature", value: 22.1, timestampMs: s(90) }, { sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(90) }],
+    evalAtSeconds: 90, expectation: "FIRE monte (fumée réelle) mais confiance plus faible — température ne corrobore pas." },
+  { id: 11, name: "Capteur hors ligne (Guardian Health)", homeState: "HOME", location: "bathroom",
+    steps: [{ sensorId: "leak_bathroom_01", metricType: "water_leak", value: 1, timestampMs: s(0) }],
+    evalAtSeconds: 700, expectation: "Le capteur devrait apparaître DÉGRADÉ, sa contribution à la confiance réduite.", checkGuardianHealthFor: "leak_bathroom_01" },
+  { id: 12, name: "Panne Internet", deferredToV2B: true, reason: "La livraison des alertes réseau n'est pas modélisée dans cette simulation locale — pertinent seulement une fois V2-B en place." },
+  { id: 13, name: "Plusieurs anomalies simultanées", homeState: "AWAY", location: "kitchen",
+    steps: [{ sensorId: "temp_kitchen_01", metricType: "temperature", value: 22, timestampMs: s(0) }, { sensorId: "temp_kitchen_01", metricType: "temperature", value: 34, timestampMs: s(90) }, { sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(90) }, { sensorId: "motion_living_01", metricType: "motion", value: 1, timestampMs: s(90), locationOverride: "living_room" }],
+    evalAtSeconds: 90, evalLocations: ["kitchen", "living_room"], expectation: "Incendie (cuisine) CRITIQUE ; intrusion (salon, AWAY) monte aussi — deux dangers indépendants rapportés séparément." },
+  { id: 14, name: "Récupération après incident", homeState: "HOME", location: "kitchen",
+    steps: [{ sensorId: "smoke_kitchen_01", metricType: "smoke", value: 1, timestampMs: s(0) }, { sensorId: "smoke_kitchen_01", metricType: "smoke", value: 0, timestampMs: s(30) }],
+    evalAtSeconds: 500, expectation: "Le score devrait redescendre — le système 'remarque' la récupération." },
+  { id: 15, name: "Réponse du propriétaire + vérification", deferredToV2B: true, reason: "Nécessite une vraie boucle d'interaction humaine — pas testable sans interface et sans humain réel." },
+];
+
+/* ============================================================
+   UI
+   ============================================================ */
+const root = document.getElementById("app");
+let selectedScenarioId = null;
+
+function render() {
+  root.innerHTML = `
+    <div class="header">
+      <h1 class="app-title">SmartHomeMind V2-A</h1>
+      <p class="app-tagline">Simulateur du moteur de raisonnement multi-capteurs</p>
+    </div>
+    <div class="disclaimer">
+      ⚠️ Démo logicielle uniquement — aucun capteur réel, aucune maison connectée. Tous les poids et seuils utilisés sont provisoires (voir <code>data/hazardConfig.js</code> dans le dépôt), à calibrer une fois du vrai matériel en place (V2-B).
+    </div>
+    <div class="scenario-picker">
+      ${SCENARIOS.map((sc) => `
+        <button type="button" class="scenario-btn ${sc.id === selectedScenarioId ? "is-selected" : ""} ${sc.deferredToV2B ? "deferred" : ""}" data-id="${sc.id}">
+          <span class="num">#${sc.id}</span>${sc.name}${sc.deferredToV2B ? " (différé → V2-B)" : ""}
+        </button>
+      `).join("")}
+    </div>
+    <div class="run-panel" id="run-panel">
+      <div class="empty-state">Choisis un scénario ci-dessus pour voir le raisonnement du moteur.</div>
+    </div>
+  `;
+
+  root.querySelectorAll(".scenario-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedScenarioId = Number(btn.dataset.id);
+      render();
+      runSelected();
+    });
+  });
+
+  if (selectedScenarioId) runSelected();
+}
+
+function runSelected() {
+  const scenario = SCENARIOS.find((s) => s.id === selectedScenarioId);
+  const panel = document.getElementById("run-panel");
+  if (!panel || !scenario) return;
+
+  if (scenario.deferredToV2B) {
+    panel.innerHTML = `
+      <h2>#${scenario.id} — ${scenario.name}</h2>
+      <div class="deferred-note"><strong>Différé vers V2-B (pilote physique).</strong><br>${scenario.reason}</div>
+    `;
+    return;
+  }
+
+  const homeState = new HomeState(scenario.homeState);
+  const guardianHealth = new GuardianHealth();
+  const engine = new RiskEngine(homeState, guardianHealth);
+
+  for (const step of scenario.steps) {
+    engine.ingestReading({
+      sensorId: step.sensorId,
+      locationId: step.locationOverride || scenario.location,
+      metricType: step.metricType,
+      value: step.value,
+      timestampMs: step.timestampMs,
+    });
+  }
+
+  const anchorMs = Date.parse("2026-01-01T00:00:00Z");
+  const evalMs = anchorMs + scenario.evalAtSeconds * 1000;
+  const locations = scenario.evalLocations || [scenario.location];
+
+  const stepsText = scenario.steps
+    .map((st) => `t+${Math.round((st.timestampMs - scenario.steps[0].timestampMs) / 1000)}s  ${(st.locationOverride || scenario.location)}/${st.sensorId}  ${st.metricType}=${st.value}`)
+    .join("\n");
+
+  let resultsHtml = "";
+  for (const loc of locations) {
+    const evaluation = engine.evaluateLocation(loc, evalMs);
+    resultsHtml += `<div class="result-block"><div class="result-location">${loc} — HOME_STATE: ${homeState.get()}</div>`;
+    let anyShown = false;
+    for (const [category, result] of Object.entries(evaluation)) {
+      if (result.score === 0 && result.confidence === 0) continue;
+      anyShown = true;
+      const decision = decideEscalation(category, result, "fr");
+      resultsHtml += `
+        <div class="category-row level-${decision.finalLevel}">
+          <span class="category-name">${category}</span>
+          <span class="metric">score=${result.score.toFixed(3)}</span>
+          <span class="metric">confiance=${result.confidence.toFixed(3)}</span>
+          <span class="level-pill level-${decision.finalLevel}">${decision.finalLevel}</span>
+          ${decision.downgradedForLowConfidence ? `<span class="downgrade-note">↓ rétrogradé (confiance faible)</span>` : ""}
+          ${decision.finalLevel !== "NORMAL" ? `<div class="channels">Canaux : ${decision.alertPlan.channels.join(", ")}${decision.alertPlan.audioFile ? ` · audio : ${decision.alertPlan.audioFile}` : ""}</div>` : ""}
+        </div>
+      `;
+    }
+    if (!anyShown) resultsHtml += `<div class="empty-state">Aucune catégorie de danger active (tout est NORMAL).</div>`;
+    resultsHtml += `</div>`;
+  }
+
+  let guardianHtml = "";
+  if (scenario.checkGuardianHealthFor) {
+    const status = guardianHealth.getSensorStatus(scenario.checkGuardianHealthFor, evalMs);
+    guardianHtml = `<div class="guardian-health">🛡 Guardian Health — ${scenario.checkGuardianHealthFor} : <strong>${status}</strong></div>`;
+  }
+
+  panel.innerHTML = `
+    <h2>#${scenario.id} — ${scenario.name}</h2>
+    <p class="desc">Évalué à t+${scenario.evalAtSeconds}s</p>
+    <div class="steps-list">${stepsText}</div>
+    ${resultsHtml}
+    ${guardianHtml}
+    <div class="expectation"><strong>Ce qu'on attend :</strong> ${scenario.expectation}</div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
