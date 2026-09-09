@@ -195,6 +195,12 @@ button:focus-visible,
 .home-screen .btn-history {
   align-self: center;
 }
+.pi-signed-in {
+  font-size: 13px;
+  color: var(--color-safe);
+  font-weight: 600;
+  margin: -6px 0 4px;
+}
 
 /* ---------- Language switcher ---------- */
 .language-switcher {
@@ -219,6 +225,7 @@ button:focus-visible,
   background: var(--color-ink);
   color: var(--color-bg);
 }
+
 /* ---------- Assessment screen ---------- */
 .progress-bar {
   height: 6px;
@@ -281,7 +288,7 @@ button:focus-visible,
 .answer-option.is-selected {
   border-color: var(--color-ink);
   background: var(--color-ink);
-  color: var(--color-bg);
+    color: var(--color-bg);
 }
 
 .btn-exit {

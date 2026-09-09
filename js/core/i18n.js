@@ -134,24 +134,10 @@ const UI_STRINGS = {
   levelHigh: { fr: "Risque élevé", en: "High risk", sw: "Hatari Kubwa", zh: "高风险" },
   levelCritical: { fr: "Alerte critique", en: "Critical alert", sw: "Tahadhari Muhimu", zh: "严重警报" },
   languageSwitcherLabel: { fr: "Langue", en: "Language", sw: "Lugha", zh: "语言" },
+  signInButton: { fr: "Se connecter avec Pi", en: "Sign in with Pi", sw: "Ingia na Pi", zh: "使用 Pi 登录" },
+  signedInAs: { fr: "Connecté : {username}", en: "Signed in: {username}", sw: "Umeingia: {username}", zh: "已登录：{username}" },
+  signInFailed: { fr: "Connexion Pi impossible.", en: "Pi sign-in failed.", sw: "Kuingia na Pi kumeshindwa.", zh: "Pi 登录失败。" },
 };
 
 /**
- * Reads the UI string for `key` in the current language (falls back to
- * French), replacing any {name} placeholders with values from `params`.
- */
-export function t(key, params) {
-  const entry = UI_STRINGS[key];
-  if (!entry) {
-    console.warn(`[i18n] Missing UI string key: "${key}"`);
-    return key;
-  }
-  const lang = getLanguage();
-  let text = entry[lang] || entry.fr;
-  if (params) {
-    for (const [name, value] of Object.entries(params)) {
-      text = text.replace(`{${name}}`, value);
-    }
-  }
-  return text;
-}
+ * Reads the UI string for `key` in
