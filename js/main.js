@@ -97,6 +97,40 @@ function goHome() {
         history.length > 0
           ? `<button type="button" class="btn-text btn-history">${t("historyButton")}</button>`
           : ""
+      }
+    </div>
+  `;
+
+  root.querySelectorAll(".lang-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setLanguage(btn.dataset.lang);
+      goHome(); // re-render home screen in the new language
+    });
+  });
+
+  root.querySelector(".btn-start").addEventListener("click", goToAssessment);
+
+  const piSigninBtn = root.querySelector(".btn-pi-signin");
+  if (piSigninBtn) {
+    piSigninBtn.addEventListener("click", handleManualSignIn);
+  }
+
+  const historyBtn = root.querySelector(".btn-history");
+  if (historyBtn) {
+    historyBtn.addEventListener("click", goToHistory);  }
+}
+
+function goToAssessment() {
+  renderAssessment(root, {
+    onComplete: (answers) => {
+      const assessment = computeAssessment(answers);
+      const recommendations = rankRecommendations(answers, 5);
+      goToResults(assessment, recommendations);
+    },
+    onExit: goHome,
+  });
+}
+
 function goToResults(assessment, recommendations) {
   renderResults(root, {
     assessment,
@@ -118,15 +152,12 @@ function goToHistory() {
     onSelectAssessment: (assessmentId) => {
       const saved = storage.getAssessmentById(assessmentId);
       if (!saved) return;
-      // Recompute recommendations for display (deterministic — same
-      // answers always produce the same ranked list, nothing new is
-      // being decided here, just redisplaying).
       const recommendations = rankRecommendations(saved.answers, 5);
       renderResults(root, {
         assessment: saved,
         recommendations,
         onRetake: goToAssessment,
-        onSaveAndViewHistory: goToHistory, // already saved, just go back
+        onSaveAndViewHistory: goToHistory,
       });
     },
     onExportData: () => {
@@ -150,9 +181,6 @@ function downloadJson(data, filename) {
   URL.revokeObjectURL(url);
 }
 
-// PWA: register the service worker (enables offline use + installability).
-// Guarded so the app still works fine in browsers/contexts without
-// service worker support — it just won't be installable there.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
@@ -161,11 +189,8 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// Apply the saved language to <html lang="..."> before the first render.
 document.documentElement.lang = getLanguage();
 
-// Boot the app.
 goHome();
 
-// Try Pi sign-in automatically (silently does nothing outside the Pi Browser).
 attemptAutoSignIn();
