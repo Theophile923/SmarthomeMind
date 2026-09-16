@@ -140,4 +140,21 @@ const UI_STRINGS = {
 };
 
 /**
- * Reads the UI string for `key` in
+ * Reads the UI string for `key` in the current language (falls back to
+ * French), replacing any {name} placeholders with values from `params`.
+ */
+export function t(key, params) {
+  const entry = UI_STRINGS[key];
+  if (!entry) {
+    console.warn(`[i18n] Missing UI string key: "${key}"`);
+    return key;
+  }
+  const lang = getLanguage();
+  let text = entry[lang] || entry.fr;
+  if (params) {
+    for (const [name, value] of Object.entries(params)) {
+      text = text.replace(`{${name}}`, value);
+    }
+  }
+  return text;
+}
