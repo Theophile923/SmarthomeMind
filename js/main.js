@@ -98,6 +98,7 @@ function goHome() {
           ? `<button type="button" class="btn-text btn-history">${t("historyButton")}</button>`
           : ""
       }
+      <a href="roadmap/index.html" class="btn-text btn-roadmap">${t("roadmapButton")}</a>
     </div>
   `;
 
@@ -117,7 +118,8 @@ function goHome() {
 
   const historyBtn = root.querySelector(".btn-history");
   if (historyBtn) {
-    historyBtn.addEventListener("click", goToHistory);  }
+    historyBtn.addEventListener("click", goToHistory);
+  }
 }
 
 function goToAssessment() {

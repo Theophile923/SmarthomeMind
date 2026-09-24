@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartHomeMind — Feuille de route</title>
+<meta name="description" content="Ce qui est disponible aujourd'hui, ce qui est en développement, et ce qui est prévu pour SmartHomeMind." />
+<style>
+:root {
+  --color-bg: #faf7f1;
+  --color-surface: #ffffff;
+  --color-ink: #1f2a24;
+  --color-ink-soft: #5b655f;
+  --color-safe: #2f6f4e;
+  --color-moderate: #c99a3b;
+  --color-risk: #b8452f;
+  --color-line: #e4ded2;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 14px;
+  --max-width: 640px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; display: flex; justify-content: center; }
+#app { width: 100%; max-width: var(--max-width); padding: 24px 20px 48px; }
+.back-link { display: inline-block; font-size: 14px; color: var(--color-ink-soft); text-decoration: underline; margin-bottom: 16px; }
+.page-title { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
+.page-intro { font-size: 14px; color: var(--color-ink-soft); line-height: 1.5; margin: 0 0 28px; }
+.section { margin-bottom: 32px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.available { background: var(--color-safe); }
+.status-dot.development { background: var(--color-moderate); }
+.status-dot.planned { background: var(--color-ink-soft); }
+.section-title { font-size: 18px; font-weight: 800; margin: 0; }
+.section-subtitle { font-size: 12px; color: var(--color-ink-soft); margin: 2px 0 0; }
+.feature-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.feature-item { background: var(--color-surface); border: 1.5px solid var(--color-line); border-radius: var(--radius); padding: 14px 16px; font-size: 14px; line-height: 1.5; }
+.feature-item strong { display: block; font-size: 15px; margin-bottom: 3px; }
+.feature-item span { color: var(--color-ink-soft); }
+.disclaimer { background: var(--color-surface); border: 1.5px dashed var(--color-line); border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: var(--color-ink-soft); line-height: 1.5; margin-top: 8px; }
+.disclaimer strong { color: var(--color-ink); }
+</style>
+</head>
+<body>
+<main id="app">
+  <a href="../index.html" class="back-link">← Retour à l'app</a>
+  <h1 class="page-title">Feuille de route</h1>
+  <p class="page-intro">
+    SmartHomeMind se construit par étapes. Cette page distingue clairement ce qui
+    fonctionne réellement aujourd'hui de ce qui est en cours de construction et
+    de ce qui reste une vision à réaliser — pour que personne ne confonde une
+    promesse avec une fonctionnalité existante.
+  </p>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="status-dot available"></span>
+      <div>
+        <h2 class="section-title">Disponible maintenant</h2>
+        <p class="section-subtitle">Construit, testé, et utilisable dès aujourd'hui</p>
+      </div>
+    </div>
+    <ul class="feature-list">
+      <li class="feature-item">
+        <strong>Évaluation de sécurité domestique</strong>
+        <span>12 questions couvrant incendie, électricité, gaz, eau, intrusion et sécurité des personnes, avec un moteur de score déterministe.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Alerte critique indépendante du score</strong>
+        <span>Un danger grave (ex. absence de détecteur de fumée) déclenche une alerte visible même si le score global reste élevé.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Recommandations priorisées</strong>
+        <span>Les actions les plus importantes sont classées et affichées en premier, pas une simple liste.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Historique et suivi</strong>
+        <span>Les évaluations précédentes sont sauvegardées sur l'appareil, avec une indication de tendance.</span>
+      </li>
+      <li class="feature-item">
+        <strong>4 langues</strong>
+        <span>Français, anglais, kiswahili et chinois.</span>
+      </li>
+      <li class="feature-item">
+        <strong>App installable, fonctionne hors-ligne</strong>
+        <span>Une fois installée, l'évaluation fonctionne même sans connexion internet.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Connexion avec Pi Network</strong>
+        <span>Authentification via ton compte Pi, vérifiée par Pi App Studio.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Démo du raisonnement multi-capteurs</strong>
+        <span>Une page séparée montre, avec des données simulées (pas de vrais capteurs), comment le futur moteur de surveillance raisonnera face à plusieurs signaux combinés.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="status-dot development"></span>
+      <div>
+        <h2 class="section-title">En développement</h2>
+        <p class="section-subtitle">En cours de construction, pas encore disponible</p>
+      </div>
+    </div>
+    <ul class="feature-list">
+      <li class="feature-item">
+        <strong>Connexion à de vrais capteurs domestiques</strong>
+        <span>Température, fuite d'eau, fumée/CO — via une passerelle Home Assistant installée dans la maison.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Surveillance continue</strong>
+        <span>Passer d'une évaluation ponctuelle à une compréhension en temps réel de l'état de la maison.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="status-dot planned"></span>
+      <div>
+        <h2 class="section-title">Prévu (vision)</h2>
+        <p class="section-subtitle">Objectifs à plus long terme, pas encore commencés</p>
+      </div>
+    </div>
+    <ul class="feature-list">
+      <li class="feature-item">
+        <strong>Alertes vocales locales (Voice Guardian)</strong>
+        <span>Messages audio contextuels et sirène, jouables même sans connexion internet.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Tableau de bord multi-maisons</strong>
+        <span>Pour les architectes ou gestionnaires suivant plusieurs propriétés.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Paiements Pi</strong>
+        <span>Abonnement et services de maintenance payables en Pi — pas encore intégré.</span>
+      </li>
+      <li class="feature-item">
+        <strong>Journal de sécurité vérifiable</strong>
+        <span>Ancrage périodique d'une empreinte du journal d'événements sur la chaîne Pi, pour une preuve infalsifiable — jamais utilisé pour la décision de sécurité elle-même, qui reste locale et déterministe.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Important :</strong> SmartHomeMind est un outil d'assistance et d'information.
+    Il ne remplace jamais un détecteur de fumée ou de monoxyde de carbone certifié —
+    ces équipements restent indispensables. Les sections "En développement" et
+    "Prévu" décrivent des objectifs, pas des garanties de date ou de disponibilité.
+  </div>
+</main>
+</body>
+</html>

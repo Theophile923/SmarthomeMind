@@ -21,7 +21,7 @@
  * old version until they manually clear their browser data.
  */
 
-const CACHE_VERSION = "v4"; // bumped after fixing the corrupted header
+const CACHE_VERSION = "v5"; // bumped: added roadmap page
 const CACHE_NAME = `smarthomemind-${CACHE_VERSION}`;
 
 const APP_SHELL_FILES = [
@@ -34,6 +34,7 @@ const APP_SHELL_FILES = [
   "./js/data/questions.js",
   "./js/data/recommendations.js",
   "./js/core/i18n.js",
+  "./js/core/piAuth.js",
   "./js/core/DynamicRiskEngine.js",
   "./js/core/RecommendationEngine.js",
   "./js/storage/StorageAdapter.js",
@@ -41,6 +42,7 @@ const APP_SHELL_FILES = [
   "./js/ui/AssessmentUI.js",
   "./js/ui/ResultsUI.js",
   "./js/ui/HistoryUI.js",
+  "./roadmap/index.html",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/apple-touch-icon.png",

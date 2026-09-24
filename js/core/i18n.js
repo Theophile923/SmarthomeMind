@@ -59,6 +59,7 @@ const UI_STRINGS = {
   },
   startButton: { fr: "Commencer l'évaluation", en: "Start the assessment", sw: "Anza tathmini", zh: "开始评估" },
   historyButton: { fr: "Évaluations précédentes", en: "Previous assessments", sw: "Tathmini zilizopita", zh: "以往的评估" },
+  roadmapButton: { fr: "Feuille de route", en: "Roadmap", sw: "Ramani ya njia", zh: "路线图" },
   exitButton: { fr: "Quitter", en: "Exit", sw: "Ondoka", zh: "退出" },
   backButton: { fr: "Retour", en: "Back", sw: "Rudi", zh: "返回" },
   nextButton: { fr: "Suivant", en: "Next", sw: "Endelea", zh: "下一步" },
