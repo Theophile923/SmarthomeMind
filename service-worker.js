@@ -4,24 +4,24 @@
  * Makes SmartHomeMind work with NO internet connection after the first
  * visit — important in contexts with unreliable connectivity.
  *
- * STRATEGY IN PLAIN TERMS:
- * On first visit, this file downloads and stores a private copy of every
- * file the app needs (the "app shell": HTML, CSS, JS, icons) inside the
- * browser's Cache Storage — a separate, larger storage area from
- * localStorage, meant exactly for this. On every visit after that, the
- * app is loaded from that local copy first — instantly, and even with
- * no network at all. It only asks the network again if you update the
- * cache version below.
+ * STRATEGY IN PLAIN TERMS ("network first, cache as a safety net"):
+ * - When you're online, every file is fetched fresh from the network,
+ *   and a copy is saved in the browser's Cache Storage.
+ * - When you're offline, the saved copy is used instead, so the app
+ *   still opens and works.
+ * This means updates reach users automatically — no need to remember to
+ * bump CACHE_VERSION after every change (the old "cache first" strategy
+ * needed that, and forgetting it left users on stale pages).
  *
- * UPDATING THE APP LATER:
- * Whenever you change any file in the app shell (a question, a style, a
- * script), bump CACHE_VERSION below (e.g. "v1" -> "v2"). That's what
- * tells returning users' browsers "the old cached copy is stale, fetch
- * everything fresh." Forgetting this step means users keep seeing the
- * old version until they manually clear their browser data.
+ * CACHE_VERSION is now only used to clear out very old caches when the
+ * list of files changes in a big way.
+ *
+ * WHAT IS NEVER TOUCHED: requests to other websites (the Pi SDK, Pi
+ * servers) and our own /api/ backend calls — those must always go
+ * straight to the network.
  */
 
-const CACHE_VERSION = "v5"; // bumped: added roadmap page
+const CACHE_VERSION = "v6";
 const CACHE_NAME = `smarthomemind-${CACHE_VERSION}`;
 
 const APP_SHELL_FILES = [
@@ -48,7 +48,8 @@ const APP_SHELL_FILES = [
   "./assets/icons/apple-touch-icon.png",
 ];
 
-// INSTALL: download and cache every app-shell file up front.
+// INSTALL: save a first copy of every app-shell file, so the app can
+// work offline even if the very first visit is the only one online.
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
@@ -74,23 +75,36 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// FETCH: cache-first for app-shell files (instant, works offline).
-// Falls back to the network for anything not in the cache, and if the
-// network also fails during navigation, serves the cached index.html
-// so the app still opens instead of showing a browser error page.
+// FETCH: network first, cache as a fallback.
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const request = event.request;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+
+  // Leave other websites alone (Pi SDK, Pi servers, etc.).
+  if (url.origin !== self.location.origin) return;
+
+  // Never cache our own backend calls.
+  if (url.pathname.startsWith("/api/")) return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === "navigate") {
-          return caches.match("./index.html");
+    // cache: "no-cache" makes the browser double-check with the server
+    // instead of trusting its own short-term memory.
+    fetch(request, { cache: "no-cache" })
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
-        return undefined;
-      });
-    })
+        return networkResponse;
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => {
+          if (cached) return cached;
+          if (request.mode === "navigate") return caches.match("./index.html");
+          return Response.error();
+        })
+      )
   );
 });
