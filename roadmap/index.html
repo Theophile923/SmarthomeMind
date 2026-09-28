@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SmartHomeMind — Feuille de route</title>
+<title>SmartHomeMind — Roadmap</title>
 <meta name="description" content="Ce qui est disponible aujourd'hui, ce qui est en développement, et ce qui est prévu pour SmartHomeMind." />
 <style>
 :root {
@@ -13,7 +13,6 @@
   --color-ink-soft: #5b655f;
   --color-safe: #2f6f4e;
   --color-moderate: #c99a3b;
-  --color-risk: #b8452f;
   --color-line: #e4ded2;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --radius: 14px;
@@ -23,7 +22,10 @@
 html, body { margin: 0; padding: 0; background: var(--color-bg); color: var(--color-ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
 body { min-height: 100vh; display: flex; justify-content: center; }
 #app { width: 100%; max-width: var(--max-width); padding: 24px 20px 48px; }
-.back-link { display: inline-block; font-size: 14px; color: var(--color-ink-soft); text-decoration: underline; margin-bottom: 16px; }
+.language-switcher { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; }
+.lang-option { font-family: var(--font-body); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--color-line); background: var(--color-surface); color: var(--color-ink-soft); cursor: pointer; }
+.lang-option.is-selected { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-bg); }
+.back-link { display: inline-block; font-size: 14px; color: var(--color-ink-soft); text-decoration: underline; margin-bottom: 16px; background: none; border: none; cursor: pointer; padding: 0; font-family: var(--font-body); }
 .page-title { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
 .page-intro { font-size: 14px; color: var(--color-ink-soft); line-height: 1.5; margin: 0 0 28px; }
 .section { margin-bottom: 32px; }
@@ -43,114 +45,280 @@ body { min-height: 100vh; display: flex; justify-content: center; }
 </style>
 </head>
 <body>
-<main id="app">
-  <a href="../index.html" class="back-link">← Retour à l'app</a>
-  <h1 class="page-title">Feuille de route</h1>
-  <p class="page-intro">
-    SmartHomeMind se construit par étapes. Cette page distingue clairement ce qui
-    fonctionne réellement aujourd'hui de ce qui est en cours de construction et
-    de ce qui reste une vision à réaliser — pour que personne ne confonde une
-    promesse avec une fonctionnalité existante.
-  </p>
+<main id="app"></main>
 
-  <div class="section">
-    <div class="section-header">
-      <span class="status-dot available"></span>
-      <div>
-        <h2 class="section-title">Disponible maintenant</h2>
-        <p class="section-subtitle">Construit, testé, et utilisable dès aujourd'hui</p>
-      </div>
-    </div>
+<script>
+const LANGUAGE_STORAGE_KEY = "smarthomemind_lang_v1";
+const SUPPORTED_LANGUAGES = ["fr", "en", "sw", "zh"];
+const LANGUAGE_DISPLAY_NAMES = { fr: "Français", en: "English", sw: "Kiswahili", zh: "中文" };
+
+function getLanguage() {
+  const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return SUPPORTED_LANGUAGES.includes(saved) ? saved : "fr";
+}
+function setLanguage(lang) {
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  document.documentElement.lang = lang;
+}
+
+const T = {
+  backLink: { fr: "← Retour à l'app", en: "← Back to app", sw: "← Rudi kwenye app", zh: "← 返回应用" },
+  pageTitle: { fr: "Feuille de route", en: "Roadmap", sw: "Ramani ya njia", zh: "路线图" },
+  pageIntro: {
+    fr: "SmartHomeMind se construit par étapes. Cette page distingue clairement ce qui fonctionne réellement aujourd'hui de ce qui est en cours de construction et de ce qui reste une vision à réaliser — pour que personne ne confonde une promesse avec une fonctionnalité existante.",
+    en: "SmartHomeMind is being built in stages. This page clearly separates what actually works today from what's being built and what remains a vision to achieve — so no one mistakes a promise for an existing feature.",
+    sw: "SmartHomeMind inajengwa hatua kwa hatua. Ukurasa huu unatofautisha wazi kile kinachofanya kazi kweli leo na kile kinachoendelezwa na kile kinachobaki kuwa dira ya kufikiwa — ili hakuna mtu achanganye ahadi na kipengele kilichopo.",
+    zh: "SmartHomeMind 正在分阶段构建。本页面清楚区分了今天真正可用的功能、正在开发中的功能，以及仍是愿景尚未实现的目标——以免任何人将承诺误认为已有功能。",
+  },
+  availableTitle: { fr: "Disponible maintenant", en: "Available now", sw: "Inapatikana sasa", zh: "现已推出" },
+  availableSubtitle: { fr: "Construit, testé, et utilisable dès aujourd'hui", en: "Built, tested, and usable today", sw: "Imejengwa, imejaribiwa, na inaweza kutumika leo", zh: "已构建、已测试，今天即可使用" },
+  devTitle: { fr: "En développement", en: "In development", sw: "Inaendelezwa", zh: "开发中" },
+  devSubtitle: { fr: "En cours de construction, pas encore disponible", en: "Being built, not yet available", sw: "Inajengwa, bado haipatikani", zh: "正在建设中，尚未推出" },
+  plannedTitle: { fr: "Prévu (vision)", en: "Planned (vision)", sw: "Imepangwa (dira)", zh: "计划中（愿景）" },
+  plannedSubtitle: { fr: "Objectifs à plus long terme, pas encore commencés", en: "Longer-term goals, not yet started", sw: "Malengo ya muda mrefu, bado hayajaanza", zh: "长期目标，尚未开始" },
+  disclaimerLabel: { fr: "Important :", en: "Important:", sw: "Muhimu:", zh: "重要提示：" },
+  disclaimerText: {
+    fr: "SmartHomeMind est un outil d'assistance et d'information. Il ne remplace jamais un détecteur de fumée ou de monoxyde de carbone certifié — ces équipements restent indispensables. Les sections « En développement » et « Prévu » décrivent des objectifs, pas des garanties de date ou de disponibilité.",
+    en: "SmartHomeMind is an assistance and information tool. It never replaces a certified smoke or carbon monoxide detector — that equipment remains essential. The \"In development\" and \"Planned\" sections describe goals, not guarantees of date or availability.",
+    sw: "SmartHomeMind ni chombo cha usaidizi na taarifa. Hakibadilishi kamwe kigunduzi cha moshi au monoksidi kaboni kilichothibitishwa — vifaa hivyo vinabaki muhimu. Sehemu za \"Inaendelezwa\" na \"Imepangwa\" zinaelezea malengo, si dhamana ya tarehe au upatikanaji.",
+    zh: "SmartHomeMind 是一款辅助信息工具。它绝不能替代经认证的烟雾或一氧化碳探测器——这些设备仍然是必不可少的。“开发中”和“计划中”部分描述的是目标，而非日期或可用性的保证。",
+  },
+};
+ 
+const AVAILABLE_FEATURES = [
+  {
+    title: { fr: "Évaluation de sécurité domestique", en: "Home safety assessment", sw: "Tathmini ya usalama wa nyumbani", zh: "家庭安全评估" },
+    desc: {
+      fr: "12 questions couvrant incendie, électricité, gaz, eau, intrusion et sécurité des personnes, avec un moteur de score déterministe.",
+      en: "12 questions covering fire, electrical, gas, water, intrusion, and people safety, with a deterministic scoring engine.",
+      sw: "Maswali 12 yanayohusu moto, umeme, gesi, maji, uvamizi, na usalama wa watu, pamoja na injini ya alama thabiti.",
+      zh: "涵盖火灾、电气、燃气、水、入侵和人身安全的12个问题，配有确定性评分引擎。",
+    },
+  },
+  {
+    title: { fr: "Alerte critique indépendante du score", en: "Critical alert independent of score", sw: "Tahadhari muhimu isiyotegemea alama", zh: "独立于评分的严重警报" },
+    desc: {
+      fr: "Un danger grave (ex. absence de détecteur de fumée) déclenche une alerte visible même si le score global reste élevé.",
+      en: "A serious hazard (e.g. no smoke detector) triggers a visible alert even if the overall score stays high.",
+      sw: "Hatari kubwa (mfano, kutokuwa na kigunduzi cha moshi) husababisha tahadhari inayoonekana hata kama alama ya jumla inabaki juu.",
+      zh: "严重危险（例如没有烟雾探测器）即使总体评分较高，也会触发明显警报。",
+    },
+  },
+  {
+    title: { fr: "Recommandations priorisées", en: "Prioritized recommendations", sw: "Mapendekezo yenye kipaumbele", zh: "优先建议" },
+    desc: {
+      fr: "Les actions les plus importantes sont classées et affichées en premier, pas une simple liste.",
+      en: "The most important actions are ranked and shown first, not just a plain list.",
+      sw: "Hatua muhimu zaidi zimepangwa na kuonyeshwa kwanza, si orodha tu.",
+      zh: "最重要的行动会被排序并优先显示，而不是简单罗列。",
+    },
+  },
+  {
+    title: { fr: "Historique et suivi", en: "History and tracking", sw: "Historia na ufuatiliaji", zh: "历史记录与追踪" },
+    desc: {
+      fr: "Les évaluations précédentes sont sauvegardées sur l'appareil, avec une indication de tendance.",
+      en: "Past assessments are saved on the device, with a trend indicator.",
+      sw: "Tathmini za awali zinahifadhiwa kwenye kifaa, pamoja na kiashiria cha mwelekeo.",
+      zh: "以往的评估会保存在设备上，并显示趋势指示。",
+    },
+  },
+  {
+    title: { fr: "4 langues", en: "4 languages", sw: "Lugha 4", zh: "4种语言" },
+    desc: {
+      fr: "Français, anglais, kiswahili et chinois.",
+      en: "French, English, Kiswahili, and Chinese.",
+      sw: "Kifaransa, Kiingereza, Kiswahili, na Kichina.",
+      zh: "法语、英语、斯瓦希里语和中文。",
+    },
+  },
+  {
+    title: { fr: "App installable, fonctionne hors-ligne", en: "Installable app, works offline", sw: "App inayoweza kusakinishwa, inafanya kazi bila mtandao", zh: "可安装应用，离线可用" },
+    desc: {
+      fr: "Une fois installée, l'évaluation fonctionne même sans connexion internet.",
+      en: "Once installed, the assessment works even without an internet connection.",
+      sw: "Mara ikisakinishwa, tathmini inafanya kazi hata bila muunganisho wa intaneti.",
+      zh: "安装后，即使没有网络连接，评估功能也能使用。",
+    },
+  },
+  {
+    title: { fr: "Connexion avec Pi Network", en: "Sign in with Pi Network", sw: "Kuingia na Pi Network", zh: "使用 Pi Network 登录" },
+    desc: {
+      fr: "Authentification via ton compte Pi, vérifiée par Pi App Studio.",
+      en: "Authentication via your Pi account, verified by Pi App Studio.",
+      sw: "Uthibitishaji kupitia akaunti yako ya Pi, iliyothibitishwa na Pi App Studio.",
+      zh: "通过您的 Pi 账户进行身份验证，由 Pi App Studio 验证。",
+    },
+  },
+  {
+    title: { fr: "Démo du raisonnement multi-capteurs", en: "Multi-sensor reasoning demo", sw: "Onyesho la hoja za sensa nyingi", zh: "多传感器推理演示" },
+    desc: {
+      fr: "Une page séparée montre, avec des données simulées (pas de vrais capteurs), comment le futur moteur de surveillance raisonnera face à plusieurs signaux combinés.",
+      en: "A separate page shows, using simulated data (no real sensors), how the future monitoring engine will reason about multiple combined signals.",
+      sw: "Ukurasa tofauti unaonyesha, kwa kutumia data ya kuiga (si sensa halisi), jinsi injini ya ufuatiliaji ya baadaye itakavyofikiri kuhusu ishara nyingi zilizounganishwa.",
+      zh: "另一个页面使用模拟数据（非真实传感器）展示未来的监控引擎将如何对多个组合信号进行推理。",
+    },
+  },
+];
+
+const DEVELOPMENT_FEATURES = [
+  {
+    title: { fr: "Connexion à de vrais capteurs domestiques", en: "Connecting real home sensors", sw: "Kuunganisha sensa halisi za nyumbani", zh: "连接真实的家庭传感器" },
+    desc: {
+      fr: "Température, fuite d'eau, fumée/CO — via une passerelle Home Assistant installée dans la maison. Testé d'abord sur une seule maison pilote (celle du développeur), pas encore un déploiement pour tous les utilisateurs.",
+      en: "Temperature, water leak, smoke/CO — via a Home Assistant gateway installed in the home. Being tested first on a single pilot house (the developer's own), not yet a rollout for all users.",
+      sw: "Joto, uvujaji wa maji, moshi/CO — kupitia lango la Home Assistant lililowekwa nyumbani. Inajaribiwa kwanza kwenye nyumba moja ya majaribio (ya mtengenezaji mwenyewe), bado si kwa watumiaji wote.",
+      zh: "温度、漏水、烟雾/一氧化碳——通过安装在家中的 Home Assistant 网关。目前仅在一个试点住宅（开发者自己的住宅）中测试，尚未面向所有用户推广。",
+    },
+    
+const PLANNED_FEATURES = [
+  {
+    title: { fr: "Alertes vocales locales (Voice Guardian)", en: "Local voice alerts (Voice Guardian)", sw: "Tahadhari za sauti za ndani (Mlinzi wa Sauti)", zh: "本地语音警报（语音守护者）" },
+    desc: {
+      fr: "Messages audio contextuels et sirène, jouables même sans connexion internet.",
+      en: "Contextual audio messages and siren, playable even without an internet connection.",
+      sw: "Ujumbe wa sauti wa muktadha na king'ora, unaoweza kuchezwa hata bila muunganisho wa intaneti.",
+      zh: "情境化语音消息和警报声，即使没有网络连接也能播放。",
+    },
+  },
+  {
+    title: { fr: "Tableau de bord multi-maisons", en: "Multi-home dashboard", sw: "Dashibodi ya nyumba nyingi", zh: "多住宅仪表板" },
+    desc: {
+      fr: "Pour les architectes ou gestionnaires suivant plusieurs propriétés.",
+      en: "For architects or managers overseeing multiple properties.",
+      sw: "Kwa wasanifu au wasimamizi wanaofuatilia mali nyingi.",
+      zh: "适用于管理多处房产的建筑师或管理人员。",
+    },
+  },
+  {
+    title: { fr: "Paiements Pi", en: "Pi Payments", sw: "Malipo ya Pi", zh: "Pi 支付" },
+    desc: {
+      fr: "Abonnement et services de maintenance payables en Pi — pas encore intégré.",
+      en: "Subscription and maintenance services payable in Pi — not yet integrated.",
+      sw: "Usajili na huduma za matengenezo zinazolipwa kwa Pi — bado hazijaunganishwa.",
+      zh: "可用 Pi 支付的订阅和维护服务——尚未集成。",
+    },
+  },
+  {
+    title: { fr: "Journal de sécurité vérifiable", en: "Verifiable safety log", sw: "Kumbukumbu ya usalama inayothibitishwa", zh: "可验证的安全日志" },
+    desc: {
+      fr: "Ancrage périodique d'une empreinte du journal d'événements sur la chaîne Pi, pour une preuve infalsifiable — jamais utilisé pour la décision de sécurité elle-même, qui reste locale et déterministe.",
+      en: "Periodic anchoring of an event-log fingerprint on the Pi chain, for tamper-proof evidence — never used for the safety decision itself, which stays local and deterministic.",
+      sw: "Uwekaji wa mara kwa mara wa alama ya kumbukumbu ya matukio kwenye mnyororo wa Pi, kwa ushahidi usioweza kubadilishwa — haitumiki kamwe kwa uamuzi wa usalama wenyewe, ambao unabaki wa ndani na thabiti.",
+      zh: "定期将事件日志的指纹锚定在 Pi 链上，以提供防篡改证据——绝不用于安全决策本身，安全决策始终保持本地化和确定性。",
+    },
+  },
+];
+
+function t(key) {
+  const lang = getLanguage();
+  return T[key][lang] || T[key].fr;
+}
+function localized(field) {
+  const lang = getLanguage();
+  return field[lang] || field.fr;
+}
+
+function renderFeatureList(features) {
+  return `
     <ul class="feature-list">
-      <li class="feature-item">
-        <strong>Évaluation de sécurité domestique</strong>
-        <span>12 questions couvrant incendie, électricité, gaz, eau, intrusion et sécurité des personnes, avec un moteur de score déterministe.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Alerte critique indépendante du score</strong>
-        <span>Un danger grave (ex. absence de détecteur de fumée) déclenche une alerte visible même si le score global reste élevé.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Recommandations priorisées</strong>
-        <span>Les actions les plus importantes sont classées et affichées en premier, pas une simple liste.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Historique et suivi</strong>
-        <span>Les évaluations précédentes sont sauvegardées sur l'appareil, avec une indication de tendance.</span>
-      </li>
-      <li class="feature-item">
-        <strong>4 langues</strong>
-        <span>Français, anglais, kiswahili et chinois.</span>
-      </li>
-      <li class="feature-item">
-        <strong>App installable, fonctionne hors-ligne</strong>
-        <span>Une fois installée, l'évaluation fonctionne même sans connexion internet.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Connexion avec Pi Network</strong>
-        <span>Authentification via ton compte Pi, vérifiée par Pi App Studio.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Démo du raisonnement multi-capteurs</strong>
-        <span>Une page séparée montre, avec des données simulées (pas de vrais capteurs), comment le futur moteur de surveillance raisonnera face à plusieurs signaux combinés.</span>
-      </li>
+      ${features
+        .map(
+          (f) => `
+        <li class="feature-item">
+          <strong>${localized(f.title)}</strong>
+          <span>${localized(f.desc)}</span>
+        </li>
+      `
+        )
+        .join("")}
     </ul>
-  </div>
+  `;
+}
 
-  <div class="section">
-    <div class="section-header">
-      <span class="status-dot development"></span>
-      <div>
-        <h2 class="section-title">En développement</h2>
-        <p class="section-subtitle">En cours de construction, pas encore disponible</p>
-      </div>
+function render() {
+  const currentLang = getLanguage();
+  const root = document.getElementById("app");
+
+  root.innerHTML = `
+    <div class="language-switcher" role="group" aria-label="Language">
+      ${SUPPORTED_LANGUAGES.map(
+        (lang) => `
+        <button type="button" class="lang-option ${lang === currentLang ? "is-selected" : ""}" data-lang="${lang}">
+          ${LANGUAGE_DISPLAY_NAMES[lang]}
+        </button>
+      `
+      ).join("")}
     </div>
-    <ul class="feature-list">
-      <li class="feature-item">
-        <strong>Connexion à de vrais capteurs domestiques</strong>
-        <span>Température, fuite d'eau, fumée/CO — via une passerelle Home Assistant installée dans la maison.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Surveillance continue</strong>
-        <span>Passer d'une évaluation ponctuelle à une compréhension en temps réel de l'état de la maison.</span>
-      </li>
-    </ul>
-  </div>
 
-  <div class="section">
-    <div class="section-header">
-      <span class="status-dot planned"></span>
-      <div>
-        <h2 class="section-title">Prévu (vision)</h2>
-        <p class="section-subtitle">Objectifs à plus long terme, pas encore commencés</p>
+    <button type="button" class="back-link" id="back-link">${t("backLink")}</button>
+
+    <h1 class="page-title">${t("pageTitle")}</h1>
+    <p class="page-intro">${t("pageIntro")}</p>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="status-dot available"></span>
+        <div>
+          <h2 class="section-title">${t("availableTitle")}</h2>
+          <p class="section-subtitle">${t("availableSubtitle")}</p>
+        </div>
       </div>
+      ${renderFeatureList(AVAILABLE_FEATURES)}
     </div>
-    <ul class="feature-list">
-      <li class="feature-item">
-        <strong>Alertes vocales locales (Voice Guardian)</strong>
-        <span>Messages audio contextuels et sirène, jouables même sans connexion internet.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Tableau de bord multi-maisons</strong>
-        <span>Pour les architectes ou gestionnaires suivant plusieurs propriétés.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Paiements Pi</strong>
-        <span>Abonnement et services de maintenance payables en Pi — pas encore intégré.</span>
-      </li>
-      <li class="feature-item">
-        <strong>Journal de sécurité vérifiable</strong>
-        <span>Ancrage périodique d'une empreinte du journal d'événements sur la chaîne Pi, pour une preuve infalsifiable — jamais utilisé pour la décision de sécurité elle-même, qui reste locale et déterministe.</span>
-      </li>
-    </ul>
-  </div>
 
-  <div class="disclaimer">
-    <strong>Important :</strong> SmartHomeMind est un outil d'assistance et d'information.
-    Il ne remplace jamais un détecteur de fumée ou de monoxyde de carbone certifié —
-    ces équipements restent indispensables. Les sections "En développement" et
-    "Prévu" décrivent des objectifs, pas des garanties de date ou de disponibilité.
-  </div>
-</main>
+    <div class="section">
+      <div class="section-header">
+        <span class="status-dot development"></span>
+        <div>
+          <h2 class="section-title">${t("devTitle")}</h2>
+          <p class="section-subtitle">${t("devSubtitle")}</p>
+        </div>
+      </div>
+      ${renderFeatureList(DEVELOPMENT_FEATURES)}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="status-dot planned"></span>
+        <div>
+          <h2 class="section-title">${t("plannedTitle")}</h2>
+          <p class="section-subtitle">${t("plannedSubtitle")}</p>
+        </div>
+      </div>
+      ${renderFeatureList(PLANNED_FEATURES)}
+    </div>
+
+    <div class="disclaimer">
+      <strong>${t("disclaimerLabel")}</strong> ${t("disclaimerText")}
+    </div>
+  `;
+
+  root.querySelectorAll(".lang-option").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setLanguage(btn.dataset.lang);
+      render();
+    });
+  });
+
+  document.getElementById("back-link").addEventListener("click", () => {
+    window.location.href = "../index.html";
+  });
+}
+
+document.documentElement.lang = getLanguage();
+render();
+</script>
 </body>
 </html>
+  },
+  {
+    title: { fr: "Surveillance continue", en: "Continuous monitoring", sw: "Ufuatiliaji endelevu", zh: "持续监控" },
+    desc: {
+      fr: "Passer d'une évaluation ponctuelle à une compréhension en temps réel de l'état de la maison.",
+      en: "Moving from a one-time assessment to a real-time understanding of the home's state.",
+      sw: "Kuhama kutoka tathmini ya mara moja kwenda uelewa wa wakati halisi wa hali ya nyumba.",
+      zh: "从一次性评估转变为对家庭状态的实时理解。",
+    },
+  },
+];
+  
