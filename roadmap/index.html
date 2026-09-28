@@ -84,7 +84,7 @@ const T = {
     zh: "SmartHomeMind 是一款辅助信息工具。它绝不能替代经认证的烟雾或一氧化碳探测器——这些设备仍然是必不可少的。“开发中”和“计划中”部分描述的是目标，而非日期或可用性的保证。",
   },
 };
- 
+  
 const AVAILABLE_FEATURES = [
   {
     title: { fr: "Évaluation de sécurité domestique", en: "Home safety assessment", sw: "Tathmini ya usalama wa nyumbani", zh: "家庭安全评估" },
@@ -169,7 +169,18 @@ const DEVELOPMENT_FEATURES = [
       sw: "Joto, uvujaji wa maji, moshi/CO — kupitia lango la Home Assistant lililowekwa nyumbani. Inajaribiwa kwanza kwenye nyumba moja ya majaribio (ya mtengenezaji mwenyewe), bado si kwa watumiaji wote.",
       zh: "温度、漏水、烟雾/一氧化碳——通过安装在家中的 Home Assistant 网关。目前仅在一个试点住宅（开发者自己的住宅）中测试，尚未面向所有用户推广。",
     },
-    
+  },
+  {
+    title: { fr: "Surveillance continue", en: "Continuous monitoring", sw: "Ufuatiliaji endelevu", zh: "持续监控" },
+    desc: {
+      fr: "Passer d'une évaluation ponctuelle à une compréhension en temps réel de l'état de la maison.",
+      en: "Moving from a one-time assessment to a real-time understanding of the home's state.",
+      sw: "Kuhama kutoka tathmini ya mara moja kwenda uelewa wa wakati halisi wa hali ya nyumba.",
+      zh: "从一次性评估转变为对家庭状态的实时理解。",
+    },
+  },
+];
+  
 const PLANNED_FEATURES = [
   {
     title: { fr: "Alertes vocales locales (Voice Guardian)", en: "Local voice alerts (Voice Guardian)", sw: "Tahadhari za sauti za ndani (Mlinzi wa Sauti)", zh: "本地语音警报（语音守护者）" },
@@ -310,15 +321,3 @@ render();
 </script>
 </body>
 </html>
-  },
-  {
-    title: { fr: "Surveillance continue", en: "Continuous monitoring", sw: "Ufuatiliaji endelevu", zh: "持续监控" },
-    desc: {
-      fr: "Passer d'une évaluation ponctuelle à une compréhension en temps réel de l'état de la maison.",
-      en: "Moving from a one-time assessment to a real-time understanding of the home's state.",
-      sw: "Kuhama kutoka tathmini ya mara moja kwenda uelewa wa wakati halisi wa hali ya nyumba.",
-      zh: "从一次性评估转变为对家庭状态的实时理解。",
-    },
-  },
-];
-  
